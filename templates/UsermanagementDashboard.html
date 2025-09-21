@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flixer - User Management</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --primary-gradient: linear-gradient(45deg, #e50914, #b80710);
+            --sidebar-bg: #141414;
+            --content-bg: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --card-hover: #222222;
+            --text-color: #ffffff;
+            --text-muted: #a0a0a0;
+            --border-color: #2a2a2a;
+            --success-color: #46c93a;
+            --warning-color: #ffba00;
+            --info-color: #3498db;
+        }
+        
+        body {
+            background-color: var(--content-bg);
+            color: var(--text-color);
+            font-family: 'Netflix Sans', 'Helvetica Neue', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        
+        /* Sidebar Styling */
+        #sidebar {
+            background-color: var(--sidebar-bg);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            padding-top: 20px;
+            z-index: 1000;
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-brand {
+            color: var(--primary-color);
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar-brand i {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-right: 10px;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-menu li {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-menu a {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background: linear-gradient(90deg, rgba(229, 9, 20, 0.1), transparent);
+            color: white;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .sidebar-menu a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: all 0.5s;
+        }
+        
+        .sidebar-menu a:hover::before {
+            left: 100%;
+        }
+        
+        .sidebar-menu i {
+            width: 25px;
+            font-size: 18px;
+            margin-right: 10px;
+        }
+        
+        /* Content Styling */
+        #content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .topbar {
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+        }
+        
+        .search-box {
+            background-color: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: white;
+            border-radius: 20px;
+            padding: 10px 20px;
+            width: 300px;
+            transition: all 0.3s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.3);
+        }
+        
+        /* Stats Cards */
+        .stats-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary-gradient);
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            background: var(--card-hover);
+        }
+        
+        .stats-card h6 {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stats-card h3 {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 0;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stats-card i {
+            font-size: 36px;
+            opacity: 0.8;
+            margin-bottom: 15px;
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-header {
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            padding: 18px 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-header i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        /* Table Styling */
+        .table {
+            
+           background-color: #121212;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .table th {
+            background-color: #1f1f1f;
+            color: #ffffff;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.6px;
+        }
+        
+        .table td {
+            
+            border-color: var(--border-color);
+            vertical-align: middle;
+            color: #aaa;
+            padding: 12px 15px;
+            background-color: #1a1a1a;
+        }
+
+        .table tbody tr{
+            background-color: #1a1a1a;
+            transition: background 0.3s ease;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        
+        /* Badges */
+        .badge {
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.75rem;
+        }
+        
+        .badge-admin {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        
+        .badge-user {
+            background: #3498db;
+            color: white;
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
+        }
+        
+        /* Action buttons */
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            margin-right: 5px;
+            transition: all 0.2s;
+        }
+        
+        .btn-action:hover {
+            transform: scale(1.1);
+        }
+        
+        /* User profile */
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 12px;
+            border: 2px solid var(--border-color);
+        }
+        
+        .user-info {
+            line-height: 1.3;
+        }
+        
+        .user-info .name {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .user-info .email {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        /* Toggle Button */
+        #sidebarToggle {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            z-index: 1001;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            display: none;
+        }
+        
+        #sidebarToggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* Overlay for mobile */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+        
+        /* Modal styling */
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-color);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        /* Form styling */
+        .form-control, .form-select {
+            background-color: #2a2a2a;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px 12px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background-color: #2f2f2f;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(229, 9, 20, 0.25);
+            color: var(--text-color);
+        }
+        
+        .form-label {
+            color: #e0e0e0;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            #sidebar {
+                width: 80px;
+                text-align: center;
+            }
+            
+            .sidebar-brand span {
+                display: none;
+            }
+            
+            .sidebar-menu a span {
+                display: none;
+            }
+            
+            .sidebar-menu i {
+                width: auto;
+                margin-right: 0;
+                font-size: 20px;
+            }
+            
+            #content {
+                margin-left: 80px;
+            }
+            
+            .search-box {
+                width: 200px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #sidebar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+            
+            #sidebar.active {
+                transform: translateX(0);
+                box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+            }
+            
+            #content {
+                margin-left: 0;
+                padding-top: 70px;
+            }
+            
+            .topbar {
+                flex-direction: row;
+                align-items: center;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 900;
+                margin: 10px;
+                width: calc(100% - 20px);
+                padding: 10px 15px;
+            }
+            
+            .search-box {
+                width: 100%;
+                margin-bottom: 0;
+            }
+            
+            #sidebarToggle {
+                display: flex;
+            }
+            
+            .overlay.active {
+                display: block;
+            }
+            
+            .stats-card i {
+                font-size: 28px;
+                top: 20px;
+                right: 20px;
+            }
+            
+            .stats-card h3 {
+                font-size: 24px;
+            }
+            
+            /* Make table responsive */
+            .table-responsive {
+                overflow-x: auto;
+            }
+            
+            /* Adjust table for mobile */
+            #usersTable th:nth-child(1),
+            #usersTable td:nth-child(1) {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px;
+            }
+            
+            .search-box {
+                margin-top: 10px;
+                width: 100%;
+            }
+            
+            .stats-card {
+                padding: 15px;
+            }
+            
+            .stats-card h3 {
+                font-size: 20px;
+            }
+            
+            .stats-card i {
+                font-size: 24px;
+                top: 15px;
+                right: 15px;
+            }
+            
+            .card-header {
+                padding: 12px 15px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .card-body {
+                padding: 15px;
+            }
+            
+            /* Further simplify table for very small screens */
+            #usersTable th:nth-child(2),
+            #usersTable td:nth-child(2) {
+                display: none;
+            }
+        }
+        
+        /* Animation for stats counting */
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .count-animation {
+            animation: countUp 1s ease-out forwards;
+        }
+        
+        /* DataTables customization */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            color: #aaa !important;
+        }
+        
+        .dataTables_wrapper .dataTables_filter input {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: white;
+            border-radius: 4px;
+            padding: 4px 10px;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            color: #aaa !important;
+            border: 1px solid var(--border-color) !important;
+            background: var(--card-bg) !important;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: var(--primary-color) !important;
+            color: white !important;
+            border: 1px solid var(--primary-color) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Overlay for mobile -->
+    <div class="overlay" id="overlay"></div>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="sidebar-brand">
+                <i class="fas fa-play-circle"></i>
+                <span>FLIXER ADMIN</span>
+            </a>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li>
+                <a href="AdminDashboard.html">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="ContentDashboard.html">
+                    <i class="fas fa-film"></i>
+                    <span>Content Management</span>
+                </a>
+            </li>
+            <li>
+                <a href="UsermanagementDashboard.html" class="active">
+                    <i class="fas fa-users"></i>
+                    <span>User Management</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div id="content">
+        <!-- Topbar -->
+        <div class="topbar">
+            <button id="sidebarToggle" class="btn btn-sm">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h4 class="mb-0 d-none d-md-block">User Management</h4>
+            <input type="text" class="search-box" placeholder="Search users...">
+            <div class="d-none d-md-flex align-items-center">
+                <span class="me-3">Welcome, Admin</span>
+                <div class="user-avatar">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" 
+                         alt="Admin" class="rounded-circle" width="40" height="40">
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row">
+            <div class="col-md-4 col-sm-6">
+                <div class="stats-card">
+                    <i class="fas fa-users text-primary"></i>
+                    <h6>TOTAL USERS</h6>
+                    <h3 id="totalUsers">0</h3>
+                    <div class="mt-2">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="stats-card">
+                    <i class="fas fa-user-shield text-danger"></i>
+                    <h6>ADMIN USERS</h6>
+                    <h3 id="adminCount">0</h3>
+                    <div class="mt-2">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="stats-card">
+                    <i class="fas fa-user text-success"></i>
+                    <h6>NORMAL USERS</h6>
+                    <h3 id="userCount">0</h3>
+                    <div class="mt-2">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit User Modal -->
+        <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit User</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="editId">
+
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" id="editUsername" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="editEmail" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select id="editRole" class="form-select">
+                                <option value="ADMIN">ADMIN</option>
+                                <option value="USER">USER</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" onclick="updateUser()">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content signup-card p-10">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Add User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Username -->
+                <div class="mb-3">
+                    <label for="addUsername" class="form-label small">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" class="form-control" id="addUsername" placeholder="Enter a username">
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label for="addEmail" class="form-label small">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        <input type="email" class="form-control" id="addEmail" placeholder="Enter your email">
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="mb-3">
+                    <label for="addPassword" class="form-label small">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="addPassword" placeholder="Enter a password">
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('addPassword', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="mb-3">
+                    <label for="addConfirmPassword" class="form-label small">Confirm Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                        <input type="password" class="form-control" id="addConfirmPassword" placeholder="Confirm your password">
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('addConfirmPassword', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="addPasswordError" class="text-danger mt-1"></div>
+                </div>
+
+                <!-- Role -->
+                <div class="mb-3">
+                    <label for="addRole" class="form-label small">Role</label>
+                    <select id="addRole" class="form-select">
+                        <option value="ADMIN">ADMIN</option>
+                        <option value="USER" selected>USER</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <!-- Add id="addUserSubmit" -->
+                <button class="btn btn-primary"  onclick="addUser()" >Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+        <!-- Users Table -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>All Users</span>
+                <button id="addUserBtn" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i> Add User
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="usersTable" class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script src="/JS/UserManagement.js"></script>
+</body>
+</html>

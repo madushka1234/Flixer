@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flixer - Content Management</title>
+   
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --primary-gradient: linear-gradient(45deg, #e50914, #b80710);
+            --sidebar-bg: #141414;
+            --content-bg: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --card-hover: #222222;
+            --text-color: #ffffff;
+            --text-muted: #a0a0a0;
+            --border-color: #2a2a2a;
+            --success-color: #46c93a;
+            --warning-color: #ffba00;
+            --info-color: #3498db;
+        }
+        
+        body {
+            background-color: var(--content-bg);
+            color: var(--text-color);
+            font-family: 'Netflix Sans', 'Helvetica Neue', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar Styling */
+        #sidebar {
+            background-color: var(--sidebar-bg);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            padding-top: 20px;
+            z-index: 1000;
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-brand {
+            color: var(--primary-color);
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar-brand i {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-right: 10px;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-menu li {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-menu a {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background: linear-gradient(90deg, rgba(229, 9, 20, 0.1), transparent);
+            color: white;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .sidebar-menu a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: all 0.5s;
+        }
+        
+        .sidebar-menu a:hover::before {
+            left: 100%;
+        }
+        
+        .sidebar-menu i {
+            width: 25px;
+            font-size: 18px;
+            margin-right: 10px;
+        }
+        
+        /* Content Styling */
+        #content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .topbar {
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+        }
+        
+        .search-box {
+            background-color: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: white;
+            border-radius: 20px;
+            padding: 10px 20px;
+            width: 300px;
+            transition: all 0.3s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.3);
+        }
+        
+        /* Stats Cards */
+        .stats-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary-gradient);
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            background: var(--card-hover);
+        }
+        
+        .stats-card h6 {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stats-card h3 {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 0;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stats-card i {
+            font-size: 36px;
+            opacity: 0.8;
+            margin-bottom: 15px;
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-header {
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            padding: 18px 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-header i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        /* Dark table theme */
+        #moviesTable {
+            background-color: #121212;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* Header */
+        #moviesTable thead.table-header {
+            background-color: #1f1f1f;
+            color: #ffffff;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.6px;
+        }
+
+        /* Rows */
+        #moviesTable tbody tr {
+            background-color: #1a1a1a;
+            transition: background 0.3s ease;
+        }
+
+        #moviesTable tbody tr:hover {
+            background-color: #2a2a2a;
+        }
+
+        /* Cells */
+        #moviesTable td {
+            color: #e0e0e0;
+            vertical-align: middle;
+            padding: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Thumbnail image */
+        #moviesTable img {
+            width: 60px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+        }
+
+        /* Genres badges */
+        #moviesTable td.genres span {
+            background: #e50914;
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin: 2px;
+            display: inline-block;
+        }
+
+        .dataTables_scrollBody {
+             max-height: none !important;
+        }
+
+
+        /* Description truncate */
+        #moviesTable td.description {
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Action buttons */
+        .btn-action {
+            padding: 6px 10px;
+            margin: 0 3px;
+            border-radius: 6px;
+        }
+
+        /* Modal box */
+        #movieModal .modal-content {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 90%;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        /* Close button */
+        #movieModal .close-btn {
+            position: absolute;
+            top: 10px; right: 15px;
+            font-size: 22px;
+            color: #fff;
+            cursor: pointer;
+        }
+        
+        /* Toggle Button */
+        #sidebarToggle {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            z-index: 1001;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            display: none;
+        }
+        
+        #sidebarToggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* Overlay for mobile */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            #sidebar {
+                width: 80px;
+                text-align: center;
+            }
+            
+            .sidebar-brand span {
+                display: none;
+            }
+            
+            .sidebar-menu a span {
+                display: none;
+            }
+            
+            .sidebar-menu i {
+                width: auto;
+                margin-right: 0;
+                font-size: 20px;
+            }
+            
+            #content {
+                margin-left: 80px;
+            }
+            
+            .search-box {
+                width: 200px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #sidebar {
+                transform: translateX(-100%);
+                width: 250px;
+            }
+            
+            #sidebar.active {
+                transform: translateX(0);
+                box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+            }
+            
+            #content {
+                margin-left: 0;
+                padding-top: 70px;
+            }
+            
+            .topbar {
+                flex-direction: row;
+                align-items: center;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 900;
+                margin: 10px;
+                width: calc(100% - 20px);
+                padding: 10px 15px;
+            }
+            
+            .search-box {
+                width: 100%;
+                margin-bottom: 0;
+            }
+            
+            #sidebarToggle {
+                display: flex;
+            }
+            
+            .overlay.active {
+                display: block;
+            }
+            
+            .stats-card i {
+                font-size: 28px;
+                top: 20px;
+                right: 20px;
+            }
+            
+            .stats-card h3 {
+                font-size: 24px;
+            }
+            
+            /* Make table responsive */
+            .table-responsive {
+                overflow-x: auto;
+            }
+            
+            /* Adjust table for mobile */
+            #moviesTable th:nth-child(4),
+            #moviesTable td:nth-child(4),
+            #moviesTable th:nth-child(6),
+            #moviesTable td:nth-child(6),
+            #moviesTable th:nth-child(7),
+            #moviesTable td:nth-child(7) {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px;
+            }
+            
+            .search-box {
+                margin-top: 10px;
+                width: 100%;
+            }
+            
+            .stats-card {
+                padding: 15px;
+            }
+            
+            .stats-card h3 {
+                font-size: 20px;
+            }
+            
+            .stats-card i {
+                font-size: 24px;
+                top: 15px;
+                right: 15px;
+            }
+            
+            .card-header {
+                padding: 12px 15px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .card-body {
+                padding: 15px;
+            }
+            
+            /* Further simplify table for very small screens */
+            #moviesTable th:nth-child(2),
+            #moviesTable td:nth-child(2) {
+                display: none;
+            }
+            
+            #moviesTable td.description {
+                max-width: 150px;
+            }
+        }
+        
+        /* Animation for stats counting */
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .count-animation {
+            animation: countUp 1s ease-out forwards;
+        }
+        
+        /* DataTables customization */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            color: #aaa !important;
+        }
+        
+        .dataTables_wrapper .dataTables_filter input {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: white;
+            border-radius: 4px;
+            padding: 4px 10px;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            color: #aaa !important;
+            border: 1px solid var(--border-color) !important;
+            background: var(--card-bg) !important;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: var(--primary-color) !important;
+            color: white !important;
+            border: 1px solid var(--primary-color) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Overlay for mobile -->
+    <div class="overlay" id="overlay"></div>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="sidebar-brand">
+                <i class="fas fa-play-circle"></i>
+                <span>FLIXER ADMIN</span>
+            </a>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li>
+                <a href="AdminDashboard.html">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="ContentDashboard.html" class="active">
+                    <i class="fas fa-film"></i>
+                    <span>Content Management</span>
+                </a>
+            </li>
+            <li>
+                <a href="UsermanagementDashboard.html">
+                    <i class="fas fa-users"></i>
+                    <span>User Management</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div id="content">
+        <!-- Topbar -->
+        <div class="topbar">
+            <button id="sidebarToggle" class="btn btn-sm">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h4 class="mb-0 d-none d-md-block">Content Management</h4>
+            <input type="text" class="search-box" placeholder="Search movies...">
+            <div class="d-none d-md-flex align-items-center">
+                <span class="me-3">Welcome, Admin</span>
+                <div class="user-avatar">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" 
+                         alt="Admin" class="rounded-circle" width="40" height="40">
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Card -->
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card">
+                    <i class="fas fa-film text-primary"></i>
+                    <h6>TOTAL MOVIES</h6>
+                    <h3 id="totalMovies">0</h3>
+                    <div class="mt-2">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✅ Add/Edit Movie Modal -->
+        <div class="modal fade" id="movieModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content bg-dark text-white">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Add Movie</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="movieForm">
+                            <input type="hidden" id="movieId" />
+
+                            <div class="mb-3 position-relative">
+                                <label class="form-label">Search TMDB</label>
+                                <input type="text" id="tmdbSearch" class="form-control" placeholder="Search movie...">
+                                <div id="tmdbResults" class="list-group mt-1" 
+                                    style="position:absolute; width:100%; z-index:1050; display:none;"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" id="title" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Year</label>
+                                <input type="number" id="year" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Genres</label>
+                                <input type="text" id="genres" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea id="description" class="form-control" rows="3" required></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Image URL</label>
+                                <input type="url" id="imageUrl" class="form-control" required>
+                                <div class="mt-2 text-center">
+                                <img id="imagePreview" src="" alt="Preview"
+                                        style="max-width:150px; border-radius:8px; display:none;">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Drop Image URL</label>
+                                <input type="url" id="dropimageUrl" class="form-control" required>
+                                <div class="mt-2 text-center">
+                                    <img id="dropImagePreview" src="" alt="Preview"
+                                        style="max-width:150px; border-radius:8px; display:none;">
+                                </div>
+                            </div>
+
+
+                            <div class="mb-3">
+                                <label class="form-label">Video URL</label>
+                                <input type="url" id="videoUrl" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Subtitle URL</label>
+                                <input type="url" id="subtitleUrl" class="form-control">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-danger d-none" id="deleteMovieBtn">Delete</button>
+                        <button type="button" class="btn btn-primary" id="saveMovieBtn">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✅ Bootstrap Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+  <div id="appToast" class="toast align-items-center border-0" role="alert">
+    <div class="d-flex">
+      <div class="toast-body d-flex align-items-center">
+        <i id="toastIcon" class="me-2"></i>
+        <span id="toastMessage"></span>
+      </div>
+      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+
+        <!-- ✅ Movies Table -->
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>All Movies</span>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#movieModal">
+                    <i class="fas fa-plus"></i> <span class="d-none d-md-inline">Add Movie</span>
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="moviesTable" class="table table-dark table-striped table-hover align-middle text-center">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Year</th>
+                                <th>Genres</th>
+                                <th class="d-none d-md-table-cell">Description</th>
+                                <th>Image</th>
+                                <th class="d-none d-md-table-cell">Video</th>
+                                <th class="d-none d-md-table-cell">Subtitles</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script src="/JS/Content.js"></script>
+</body>
+</html>
