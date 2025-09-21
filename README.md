@@ -26,3 +26,6 @@ This project demonstrates a **full-stack streaming platform clone**.
 🎞️ Movies CRUD + fetch details from TMDB
 
 📊 Dashboard for managing content
+
+
+YouTube video link - https://youtu.be/I_GppRI3Am0
