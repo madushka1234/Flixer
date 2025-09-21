@@ -10,23 +10,19 @@ It provides functionality for:
 
 This project demonstrates a **full-stack streaming platform clone**.
 
----
-
-## 📸 Screenshots  
-- **Login Page**  
-  ![Login](scree)
-)
-
-- **Dashboard**  
-  ![Dashboard](screenshots/dashboard.png)
-
-- **Movie Management**  
-  ![Movies](screenshots/movies.png)
-
----
 
 ## ⚙️ Setup Instructions  
 
 ### 🔧 Backend (Spring Boot)
 
 
+
+🚀 Features
+
+🔑 User login & JWT authentication
+
+👤 Admin can manage users (CRUD)
+
+🎞️ Movies CRUD + fetch details from TMDB
+
+📊 Dashboard for managing content
