@@ -5,7 +5,7 @@ Flixer is a **Netflix Clone** built with **Spring Boot (Java)** for the backend 
 It provides functionality for:  
 - 🔑 **User authentication** with JWT  
 - 👥 **User & Role management** (Admin/User)  
-- 🎞️ **Movie management** (add, update, list movies)  
+- 🎞️ **Movie management** (add, update,Delete, list movies)  
 - 🌐 **Integration with TMDB API** for fetching movie details  
 
 This project demonstrates a **full-stack streaming platform clone**.
